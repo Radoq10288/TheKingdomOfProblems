@@ -1,0 +1,15 @@
+# Ignore the following directory or file(s)
+
+# Directories
+bin/
+include/
+obj/
+test/
+
+# File(s)
+*.exe
+*.o
+*.png
+backup.c
+
+
