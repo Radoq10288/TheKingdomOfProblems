@@ -1,6 +1,6 @@
 /* File:         src/map.h
  *
- * Author:       
+ * Author:       Raffy Doquenia
  *
  * Date & time:  11/04/2022-11:01:17-PM
  */

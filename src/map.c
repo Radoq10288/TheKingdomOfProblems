@@ -1,6 +1,6 @@
 /* File:         src/map.c
  *
- * Author:       
+ * Author:       Raffy Doquenia
  *
  * Date & time:  11/04/2022-11:01:17-PM
  */
@@ -11,8 +11,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "mapdatalist.h"
 #include "map.h"
+#include "stack.h"
+
+
+static struct Reference_Position {
+	int row_pos;
+	int column_pos;
+}ref_pos;
 
 
 /* This function will seek for possible army or armies lurking in the region
@@ -40,10 +46,6 @@
  * );
  */
 
-static struct Reference_Position {
-	int row_pos;
-	int column_pos;
-}ref_pos;
 
 static int seek_armies_in_region(char **map, size_t const row_size, size_t const col_size, unsigned int const start_x_pos, unsigned int const start_y_pos, Kingdom kngdm[]) {
 	bool found_armies = false;
@@ -51,22 +53,23 @@ static int seek_armies_in_region(char **map, size_t const row_size, size_t const
 	static int count = 0, region_number = 1;
 	unsigned int x_pos = start_x_pos, y_pos = start_y_pos;
 	
-	Map_Item *mapi = NULL;
+	make_stack();
+	Map_Item *temp;
 	
 	if (map[x_pos][y_pos] == empty_land  || (isalpha(map[x_pos][y_pos]) && islower(map[x_pos][y_pos]))) {
-		insert_item_to_top(map[x_pos][y_pos], x_pos, y_pos);
+		push(map[x_pos][y_pos], x_pos, y_pos);
 		map[x_pos][y_pos] = label;
-		mapi = pop_top_item();
+		temp = pop();
 	}
 	else {
 		return 1; // Not an empty land or an army.
 	}
 	
-	while (mapi != NULL) {
+	while (temp != NULL) {
 		
-		if (isalpha(mapi->item)) {
+		if (isalpha(temp->item)) {
 			found_armies = true;
-			kngdm[count].factn.army = mapi->item;
+			kngdm[count].factn.army = temp->item;
 			kngdm[count].factn.controlled_regions = 1;
 			kngdm[count].regn.region_number = region_number;
 			kngdm[count].regn.contested = false;
@@ -74,8 +77,8 @@ static int seek_armies_in_region(char **map, size_t const row_size, size_t const
 			count++;
 		}
 		
-		x_pos = mapi->row;
-		y_pos = mapi->col;
+		x_pos = temp->row;
+		y_pos = temp->col;
 		
 		/* Save the current reference position to be able to return to this
 		 * position after scanning each four neighbor.
@@ -96,7 +99,7 @@ static int seek_armies_in_region(char **map, size_t const row_size, size_t const
 			}
 			
 			if (map[x_pos][y_pos] == empty_land || (isalpha(map[x_pos][y_pos]) && islower(map[x_pos][y_pos]))) {
-				insert_item_to_top(map[x_pos][y_pos], x_pos, y_pos);
+				push(map[x_pos][y_pos], x_pos, y_pos);
 				map[x_pos][y_pos] = label;
 			}
 			
@@ -104,13 +107,13 @@ static int seek_armies_in_region(char **map, size_t const row_size, size_t const
 			y_pos = ref_pos.column_pos;
 		}
 		
-		mapi = pop_top_item();
+		temp = pop();
 	}
 	
 	region_number++;
+	destroy_stack(temp);
 	kngdm[count].factn.army = '\0';
 	if (found_armies == false) { return 2; } // No army is found.
-	empty_item_list();
 	return 0;
 }
 
