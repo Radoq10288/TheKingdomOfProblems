@@ -50,7 +50,7 @@ static struct Reference_Position {
 static int seek_armies_in_region(char **map, size_t const row_size, size_t const col_size, unsigned int const start_x_pos, unsigned int const start_y_pos, Kingdom kngdm[]) {
 	bool found_armies = false;
 	char label = '0', empty_land = '.';
-	static int count = 0, region_number = 1;
+	int count = 0;
 	unsigned int x_pos = start_x_pos, y_pos = start_y_pos;
 	
 	make_stack();
@@ -71,7 +71,6 @@ static int seek_armies_in_region(char **map, size_t const row_size, size_t const
 			found_armies = true;
 			kngdm[count].factn.army = temp->item;
 			kngdm[count].factn.controlled_regions = 1;
-			kngdm[count].regn.region_number = region_number;
 			kngdm[count].regn.contested = false;
 			kngdm[count].regn.occupying_army_count = 1;
 			count++;
@@ -110,7 +109,6 @@ static int seek_armies_in_region(char **map, size_t const row_size, size_t const
 		temp = pop();
 	}
 	
-	region_number++;
 	destroy_stack(temp);
 	kngdm[count].factn.army = '\0';
 	if (found_armies == false) { return 2; } // No army is found.
