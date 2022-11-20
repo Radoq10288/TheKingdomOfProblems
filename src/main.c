@@ -74,7 +74,7 @@ int set_test_case() {
 		print_faction_list(kngdm);
 		#endif
 		
-		sort_out_armies(kngdm);
+		count_similar_armies(kngdm);
 		
 		#ifdef DEBUG_MODE
 		// Faction list after sorting out

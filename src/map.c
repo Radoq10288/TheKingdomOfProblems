@@ -116,74 +116,115 @@ static int seek_armies_in_region(char **map, size_t const row_size, size_t const
 }
 
 
+/* Identify similar faction residing in the same region.
+ *
+ * Return:
+ * If function succeed return zero else, return non-negative value.
+ */
+static int find_similar_armies(Kingdom *kngdm) {
+	if (kngdm == NULL) { return 1; }
+	int found_similar_army = 0;
+	for (int r = 0; kngdm[r].factn.army != '\0'; r++) {
+		for (int y = 0; kngdm[y].factn.army != '\0'; y++) {
+			if (kngdm[r].factn.army == kngdm[y].factn.army && r != y) {
+				kngdm[y].factn.army = '~';
+				kngdm[y].factn.controlled_regions = 0;
+				kngdm[y].regn.occupying_army_count = 0;
+				found_similar_army++;
+			}
+		}
+		
+	}
+	
+	if (found_similar_army > 1) {
+		return 2; // No similar army found within the region.
+	}
+	else {
+		return 0;
+	}
+}
+
+
+/* Identify different faction occupying the same region.
+ *
+ * Return:
+ * If function succeed return zero else, return non-negative value.
+ */
+static int find_diff_armies(Kingdom *kngdm) {
+	if (kngdm == NULL) { return 1; }
+	int found_diff_army = 0;
+	// Count the different army that reside in the same region.
+	for (int r = 0; kngdm[r].factn.army != '\0'; r++) {
+		if (isalpha(kngdm[r].factn.army)) { found_diff_army++; }
+	}
+	
+	if (found_diff_army > 1) {
+		for (int y = 0; kngdm[y].factn.army != '\0'; y++) {
+			if (isalpha(kngdm[y].factn.army)) {
+				kngdm[y].factn.controlled_regions = 0;
+				kngdm[y].regn.contested = true;
+				kngdm[y].regn.occupying_army_count = found_diff_army;
+			}
+		}
+		return 0;
+	}
+	else {
+		return 2; // No other army found within the region.
+	}
+}
+
+
+// Indicates contested region.
+static int K = 0;
+
+
 int explore_the_map(char **map, size_t const row_size, size_t const col_size, Kingdom *kngdm) {
 	if (map == NULL) { return 1; }
+	Kingdom *temp = malloc(sizeof(Kingdom) * 26);
+	int count = 0;
+
 	for (int x = 0; x != row_size; x++) {
 		for (int y = 0; y != col_size; y++) {
-			seek_armies_in_region(map, row_size, col_size, x, y, kngdm);
+			if (seek_armies_in_region(map, row_size, col_size, x, y, temp) == 0) {
+				find_similar_armies(temp);
+				if (find_diff_armies(temp) == 0) { K += 1; } 
+				for (int z = 0; temp[z].factn.army != '\0'; z++) {
+					kngdm[count] = temp[z];
+					count++;
+				}
+				kngdm[count].factn.army = '\0';
+			}
 		}
 	}
+
+	free(temp);
+	temp = NULL;
 	return 0;
 }
 
 
-int sort_out_armies(Kingdom *kngdm) {
+int count_similar_armies(Kingdom *kngdm) {
 	if (kngdm == NULL) { return 1; }
-	/* Sort out similar faction residing in the same region.
-	 */
 	for (int r = 0; kngdm[r].factn.army != '\0'; r++) {
 		for (int y = 0; kngdm[y].factn.army != '\0'; y++) {
-			if (kngdm[r].factn.army == kngdm[y].factn.army && kngdm[r].regn.region_number == kngdm[y].regn.region_number && r != y) {
+			if (kngdm[r].factn.army == kngdm[y].factn.army && kngdm[y].regn.contested == false && kngdm[r].regn.contested == false && r != y) {
+				kngdm[r].factn.controlled_regions += 1;
+				kngdm[r].regn.occupying_army_count = 0;
+
 				kngdm[y].factn.army = '~';
 				kngdm[y].factn.controlled_regions = 0;
-				kngdm[y].regn.region_number = 0;
 				kngdm[y].regn.occupying_army_count = 0;
 			}
 		}
 	}
 
-
-	// Sort out different faction occupying the same region.
-	int region = 1;
-	for (int n = 0; kngdm[n].factn.army != '\0'; n++) {
-		int found_unique_army = 0;
-		
-		for (int r = 0; kngdm[r].factn.army != '\0'; r++) {
-			// Count how many unique faction are found in the same region.
-			for (int y = 0; kngdm[y].factn.army != '\0'; y++) {
-				if (isalpha(kngdm[y].factn.army) && kngdm[y].regn.region_number == region) { found_unique_army++; }
-			}
-			
-			if (isalpha(kngdm[r].factn.army) && kngdm[r].regn.region_number == region && found_unique_army > 1) {
-				kngdm[r].factn.controlled_regions = 0;
-				kngdm[r].regn.contested = true;
-				kngdm[r].regn.occupying_army_count = found_unique_army;
-			}
-			found_unique_army = 0;
-		}
-		region++;
-	}
+	return 0;
+}
 
 
-	/* Sort out similar factions that resides in different regions.
-	 */
-	for (int r = 0; kngdm[r].factn.army != '\0'; r++) {
-		for (int y = 0; kngdm[y].factn.army != '\0'; y++) {
-			if (kngdm[r].factn.army == kngdm[y].factn.army && kngdm[r].regn.region_number != kngdm[y].regn.region_number && r != y) {
-				if (kngdm[y].regn.contested == false && kngdm[r].regn.contested == false) {
-					kngdm[r].factn.controlled_regions += 1;
-					kngdm[r].regn.region_number = 0;
-					kngdm[r].regn.occupying_army_count = 0;
-					
-					kngdm[y].factn.army = '~';
-					kngdm[y].factn.controlled_regions = 0;
-					kngdm[y].regn.region_number = 0;
-					kngdm[y].regn.occupying_army_count = 0;
-				}
-			}
-		}
-	}
-	
+int print_kingdom_report(Kingdom *kngdm, size_t const row_size, size_t const column_size) {
+	if (kngdm == NULL) { return 1; }
+
 	/* Sort list alphabetically.
 	 */
 	Kingdom temp;
@@ -196,27 +237,13 @@ int sort_out_armies(Kingdom *kngdm) {
 			}
 		}
 	}
-	
-	return 0;
-}
 
-
-int print_kingdom_report(Kingdom *kngdm, size_t const row_size, size_t const column_size) {
-	if (kngdm == NULL) { return 1; }
 	for (int i = 0; kngdm[i].factn.army != '\0'; i++) {
 		if (isalpha(kngdm[i].factn.army) && kngdm[i].factn.controlled_regions != 0) {
 			printf("%c %d\n", kngdm[i].factn.army, kngdm[i].factn.controlled_regions);
 		}
 	}
-	
-	int K = 0, region = 0;
-	for (int i = 0; kngdm[i].factn.army != '\0'; i++) {
-		if (kngdm[i].regn.contested == true && kngdm[i].regn.region_number != region) {
-			region = kngdm[i].regn.region_number;
-			K += 1;
-		}
-	}
-	
+
 	if (K != 0) { printf("contested: %d\n", K); }
 	printf("\n");
 	return 0;
@@ -226,10 +253,9 @@ int print_kingdom_report(Kingdom *kngdm, size_t const row_size, size_t const col
 int print_faction_list(Kingdom *kngdm) {
 	if (kngdm == NULL) { return 1; }
 	for (int i = 0; kngdm[i].factn.army != '\0'; i++) {
-		printf("faction=%c CR=%d RN=%d C=%d OAC=%d\n",
+		printf("faction=%c CR=%d C=%d OAC=%d\n",
 			kngdm[i].factn.army,
 			kngdm[i].factn.controlled_regions,
-			kngdm[i].regn.region_number,
 			kngdm[i].regn.contested,
 			kngdm[i].regn.occupying_army_count
 		);

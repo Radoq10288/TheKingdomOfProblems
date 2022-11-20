@@ -19,7 +19,6 @@ typedef struct {
 
 
 typedef struct {
-	int region_number;
 	bool contested;
 	int occupying_army_count;
 }Region;
@@ -31,8 +30,10 @@ typedef struct Kingdom {
 }Kingdom;
 
 
-/* This function is only a helper function for the seek_armies_in_region()
- * to fully explore every region in the map.
+/* This function is a helper function for the seek_armies_in_region()
+ * to explore each region in the map. It also identifies similar and
+ * different factions residing in the current region explored and
+ * identifies how many contested regions.
  *
  * Return:
  * If function succeeds, returns zero else, returns non-negative value if
@@ -46,14 +47,13 @@ int explore_the_map(
 );
 
 
-/* Sorts out armies that resides in the same region and from different
- * regions.
+/* Count similar armies that resides from different regions.
  *
  * Return:
  * If function succeeds returns zero else, returns non-negative value if
  * *kngdm* parameter is NULL.
  */
-int sort_out_armies(Kingdom *kngdm);
+int count_similar_armies(Kingdom *kngdm);
 
 
 /* Prints out status report on how many regions each army occupies and how
@@ -73,7 +73,6 @@ int print_kingdom_report(Kingdom *kngdm, size_t const row_size, size_t const col
  * This is the list of details it prints.
  * - faction
  * - CR(Controlled Regions)		The number of regions controlled by a faction.
- * - RN(Region Number)			To identify what region each faction found belong.
  * - C(Contested)				To identify if a faction belongs to a contested region.
  * - OAC(Occupying Army Count)	To identify how many faction resides in a region.
  */
