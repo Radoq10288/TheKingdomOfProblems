@@ -136,7 +136,7 @@ static int find_similar_armies(Kingdom *kngdm) {
 		
 	}
 	
-	if (found_similar_army > 1) {
+	if (found_similar_army == 0) {
 		return 2; // No similar army found within the region.
 	}
 	else {
