@@ -207,7 +207,7 @@ int count_similar_armies(Kingdom *kngdm) {
 	if (kngdm == NULL) { return 1; }
 	for (int r = 0; kngdm[r].factn.army != '\0'; r++) {
 		for (int y = 0; kngdm[y].factn.army != '\0'; y++) {
-			if (kngdm[r].factn.army == kngdm[y].factn.army && kngdm[y].regn.contested == false && kngdm[r].regn.contested == false && r != y) {
+			if (isalpha(kngdm[r].factn.army) && kngdm[r].factn.army == kngdm[y].factn.army && kngdm[y].regn.contested == false && kngdm[r].regn.contested == false && r != y) {
 				kngdm[r].factn.controlled_regions += 1;
 				kngdm[r].regn.occupying_army_count = 0;
 
