@@ -18,15 +18,17 @@
 int read_str(char *destination, size_t str_size) {
 	/* Legend:
 	 * Values of *status* variable.
-	 * 1 - indicates a failed memory allocation. The allocated memory
+	 * 1 - indicates str_size is larger than MAX_INPUT_SIZE.
+	 * 2 - indicates a failed memory allocation. The allocated memory
 	 *     will be used to store each of the characters getchar() reads.
-	 * 2 - indicates an empty input from stdin.
+	 * 3 - indicates an empty input from stdin.
 	 */
 	int ch, status = 0;
+	if (str_size > MAX_INPUT_SIZE) { status = 1; goto read_str_error; }
 	char *input = malloc(sizeof(char) * MAX_INPUT_SIZE);
 	unsigned int i = 0;
 	
-	if (input == NULL) { status = 1; goto read_str_error; }
+	if (input == NULL) { status = 2; goto read_str_error; }
 	while (true) {
 		ch = getchar();
 		
@@ -67,7 +69,7 @@ int read_str(char *destination, size_t str_size) {
 		i++;
 	}
 	
-	if (i == 0) { status = 2; }
+	if (i == 0) { status = 3; }
 	strcpy(destination, input);
 	free(input);
 	input = NULL;
