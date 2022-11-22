@@ -33,7 +33,14 @@ int set_test_case() {
 	int *int_ptr[2] = {&N, &M};
 	
 	// How many test case to attempt?
-	read_number(&T, 1);
+	printf("> ");
+	if (read_number(&T, 1) != 0) {
+		fprintf(stderr, "User's fault:\n"
+						"Expecting a numeric value.\n\n"
+						"The program will now terminate.\n"
+				);
+		return 1;
+	}
 	if (T > MAX_TEST_CASE) {
 		fprintf(stderr,
 				"User's fault:\n"
@@ -48,13 +55,20 @@ int set_test_case() {
 				"It is only a humor error message.\n"
 				"If you find it offensive, please let me know.\n\n"
 				);
-		return 1;
+		return 2;
 	}
 	printf("\n");
 
 	for (int n = 0; n != T; n++) {
 		for (int i = 0; i != 2; i++) {
-			read_number(int_ptr[i], 2);
+			printf("> ");
+			if (read_number(int_ptr[i], 2) == 2) {
+				fprintf(stderr, "User's fault:\n"
+						"Expecting a numeric value.\n\n"
+						"The program will now terminate.\n"
+				);
+				return 3;
+			}
 		}
 		
 		kngdm = malloc(sizeof(Kingdom) * 26);
