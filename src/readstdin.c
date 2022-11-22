@@ -5,6 +5,7 @@
  * Date & time:  11/09/2022-01:33:02-PM
  */
 
+#include <ctype.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -81,10 +82,13 @@ int read_str(char *destination, size_t str_size) {
 
 int read_number(int *destination, int const digit) {
 	char temp[digit];
-	printf("> ");
 	if (read_str(temp, digit) != 0) { destination = NULL; return 1; }
+	
+	for (int i = 0; temp[i] != '\0'; i++) {
+		if (isdigit(temp[i]) == 0) { destination = NULL; return 2; }
+	}
+	
 	*destination = atoi(temp);
-
 	return 0;
 }
 
