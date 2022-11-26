@@ -23,6 +23,7 @@ int read_str(char *destination, size_t str_size) {
 	 * 2 - indicates a failed memory allocation. The allocated memory
 	 *     will be used to store each of the characters getchar() reads.
 	 * 3 - indicates an empty input from stdin.
+	 * 4 - indicates input from stdin is more than the indicated in str_size.
 	 */
 	int ch, status = 0;
 	if (str_size > MAX_INPUT_SIZE) { status = 1; goto read_str_error; }
@@ -54,8 +55,9 @@ int read_str(char *destination, size_t str_size) {
 				ch = getchar();
 				if (ch == '\n') {
 					putchar('\b');
-					input[i] = '\0';
-					break;
+					input = "\0";
+					status = 4;
+					goto read_str_error;
 				}
 				putchar('\b');
 			}
@@ -82,10 +84,14 @@ int read_str(char *destination, size_t str_size) {
 
 int read_number(int *destination, int const digit) {
 	char temp[digit];
-	if (read_str(temp, digit) != 0) { destination = NULL; return 1; }
+	switch (read_str(temp, digit)) {
+		case 1: destination = NULL; return 1; break;	// digit is more than MAX_INPUT_SIZE.
+		case 3: destination = NULL; return 2; break;	// empty input from stdin.
+		case 4: destination = NULL; return 3; break;	// input is more than the value of digit.
+	}
 	
 	for (int i = 0; temp[i] != '\0'; i++) {
-		if (isdigit(temp[i]) == 0) { destination = NULL; return 2; }
+		if (isdigit(temp[i]) == 0) { destination = NULL; return 4; }	// input is or has a non-numeric character.
 	}
 	
 	*destination = atoi(temp);

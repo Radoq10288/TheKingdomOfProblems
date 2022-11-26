@@ -29,17 +29,26 @@ static Kingdom *kngdm;
 //#define DEBUG_MODE
 
 int set_test_case() {
+	int status = 0;
 	int T = 0, N = 0, M = 0;
 	int *int_ptr[2] = {&N, &M};
 	
 	// How many test case to attempt?
 	printf("> ");
-	if (read_number(&T, 1) != 0) {
+	status = read_number(&T, 1);
+	if (status == 3) {
+		fprintf(stderr, "User's fault:\n"
+						"Expecting a single digit numeric value.\n\n"
+						"The program will now terminate.\n"
+				);
+		return 1;
+	}
+	if (status != 0) {
 		fprintf(stderr, "User's fault:\n"
 						"Expecting a numeric value.\n\n"
 						"The program will now terminate.\n"
 				);
-		return 1;
+		return 2;
 	}
 	if (T > MAX_TEST_CASE) {
 		fprintf(stderr,
@@ -55,19 +64,27 @@ int set_test_case() {
 				"It is only a humor error message.\n"
 				"If you find it offensive, please let me know.\n\n"
 				);
-		return 2;
+		return 3;
 	}
 	printf("\n");
 
 	for (int n = 0; n != T; n++) {
 		for (int i = 0; i != 2; i++) {
 			printf("> ");
-			if (read_number(int_ptr[i], 2) == 2) {
+			status = read_number(int_ptr[i], 2);
+			if (status == 3) {
+				fprintf(stderr, "User's fault:\n"
+								"Expecting a single digit numeric value.\n\n"
+								"The program will now terminate.\n"
+				);
+				return 1;
+			}
+			if (status != 0) {
 				fprintf(stderr, "User's fault:\n"
 						"Expecting a numeric value.\n\n"
 						"The program will now terminate.\n"
 				);
-				return 3;
+				return 2;
 			}
 		}
 		
@@ -108,10 +125,7 @@ int set_test_case() {
 
 
 int main(int argc, char *argv[]) {
-	
-	set_test_case();
-
-    return 0;
+    return set_test_case();
 }
 
 
